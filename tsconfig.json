@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    // ============ 文件路径配置 ============
+    "rootDir": "./src",                    // 源代码目录
+    "outDir": "./dist",                    // 编译输出目录
+
+    // ============ 模块和目标配置 ============
+    "module": "esnext",                    // 使用最新的 ES 模块格式
+    "target": "ES2020",                    // 编译目标：ES2020 版本
+    "lib": ["ES2020"],                     // 使用 ES2020 的 API
+    "types": ["node"],                     // 启用 Node.js 类型定义
+
+    // ============ 输出文件配置 ============
+    "sourceMap": true,                     // 生成 source map，便于调试
+    "declaration": true,                   // 生成 .d.ts 类型文件
+    "declarationMap": true,                // 生成 declaration map
+
+    // ============ 严格类型检查 ============
+    "strict": true,                        // 启用全部严格检查
+    "noUncheckedIndexedAccess": true,      // 检查数组索引访问
+    "exactOptionalPropertyTypes": true,    // 精确的可选属性类型
+    "noImplicitReturns": true,             // 函数必须有明确返回值
+    "noFallthroughCasesInSwitch": true,    // switch 必须有 break
+
+    // ============ 模块兼容性 ============
+    "esModuleInterop": true,               // 兼容 CommonJS 和 ES Module
+    "allowSyntheticDefaultImports": true,  // 允许从没有默认导出的模块导入
+    "verbatimModuleSyntax": true,          // 保留原始模块语法
+    "moduleDetection": "auto",             // 自动检测模块类型
+    "moduleResolution": "node",            // 使用 Node.js 模块解析
+
+    // ============ 其他配置 ============
+    "isolatedModules": true,               // 将每个文件视为独立模块
+    "resolveJsonModule": true,             // 允许导入 JSON 文件
+    "forceConsistentCasingInFileNames": true,  // 强制文件名大小写一致
+    "skipLibCheck": true                   // 跳过第三方库的类型检查
+  },
+  "include": ["src"],                      // 只编译 src 文件夹
+  "exclude": ["node_modules", "dist"]      // 排除这些目录
+}
+
