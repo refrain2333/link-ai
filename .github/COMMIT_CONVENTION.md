@@ -9,118 +9,118 @@
 ## 提交格式
 
 ```
-<type>(<scope>): <subject>
+<类型>(<范围>): <简述>
 
-<body>
+<详细说明>
 
-<footer>
+<页脚>
 ```
 
 ### 必需部分
 
-- **type**: 提交类型（必须）
-- **scope**: 影响范围（可选，推荐）
-- **subject**: 简述（必须，不超过 50 字符）
+- **类型**: 提交类型（必须）
+- **范围**: 影响范围（可选，推荐）
+- **简述**: 简述（必须，不超过 50 字符）
 
 ### 可选部分
 
-- **body**: 详细说明（非必要，但推荐）
-- **footer**: 页脚信息（用于关闭 issue、breaking changes）
+- **详细说明**: 详细说明（非必要，但推荐）
+- **页脚**: 页脚信息（用于关闭 issue、breaking changes）
 
 ---
 
-## Type（提交类型）
+## 类型（Type）
 
-| Type | 说明 | 例子 |
+| 类型 | 说明 | 例子 |
 |------|------|------|
-| **feat** | 新功能 | `feat(auth): add JWT refresh token` |
-| **fix** | 修复 bug | `fix(chat): handle stream timeout` |
-| **docs** | 文档修改 | `docs: update README` |
-| **style** | 代码风格（不影响功能） | `style: format code with prettier` |
-| **refactor** | 代码重构 | `refactor(services): extract common logic` |
-| **perf** | 性能优化 | `perf(db): add query index` |
-| **test** | 测试相关 | `test(auth): add login test cases` |
-| **chore** | 维护工作 | `chore: update dependencies` |
-| **ci** | CI/CD 相关 | `ci: add GitHub Actions workflow` |
+| **feat** | 新功能 | `feat(认证): 添加 JWT 刷新令牌` |
+| **fix** | 修复 bug | `fix(对话): 处理流超时` |
+| **docs** | 文档修改 | `docs: 更新 README` |
+| **style** | 代码风格（不影响功能） | `style: 使用 prettier 格式化代码` |
+| **refactor** | 代码重构 | `refactor(services): 提取公共逻辑` |
+| **perf** | 性能优化 | `perf(数据库): 添加查询索引` |
+| **test** | 测试相关 | `test(认证): 添加登录测试用例` |
+| **chore** | 维护工作 | `chore: 更新依赖` |
+| **ci** | CI/CD 相关 | `ci: 添加 GitHub Actions 工作流` |
 
 ---
 
-## Scope（影响范围）
+## 范围（Scope）
 
-根据 link-ai 的架构，scope 应该是：
+根据 link-ai 的架构，范围应该是：
 
-| Scope | 说明 |
-|-------|------|
-| `auth` | 认证模块 |
-| `chat` | 对话模块 |
-| `user` | 用户模块 |
-| `db` | 数据库相关 |
-| `middleware` | 中间件 |
-| `types` | 类型定义 |
-| `config` | 配置相关 |
+| 范围 | 说明 |
+|------|------|
+| `认证` | 认证模块 |
+| `对话` | 对话模块 |
+| `用户` | 用户模块 |
+| `数据库` | 数据库相关 |
+| `中间件` | 中间件 |
+| `类型` | 类型定义 |
+| `配置` | 配置相关 |
 | `prisma` | Prisma ORM |
 | `redis` | Redis 缓存 |
 | `openai` | OpenAI 集成 |
 
 ---
 
-## Subject（简述）
+## 简述（Subject）
 
 ### 规则
 
 1. **不超过 50 字符**
-2. **以动词开头**（add, fix, update, remove, 等）
+2. **以动词开头**（添加、修复、更新、删除 等）
 3. **小写字母开头**
 4. **不要加句号**
-5. **使用英文或中文，保持一致**
+5. **使用中文，保持一致**
 
 ### 好的例子
 
 ```
-feat(auth): add JWT token refresh mechanism
-fix(chat): resolve stream connection timeout issue
-docs(readme): add quick start guide
-refactor(services): extract validation logic
+feat(认证): 添加 JWT 令牌刷新机制
+fix(对话): 解决流连接超时问题
+docs(readme): 添加快速开始指南
+refactor(services): 提取验证逻辑
 ```
 
 ### 不好的例子
 
 ```
-fix bug                          # 过于简略
-fix(auth): Add JWT token.        # 大写 + 句号
-update something                 # 不够具体
-WIP: working on chat feature     # 不符合规范
+fix bug                              # 过于简略
+fix(认证): 添加 JWT 令牌。            # 句号
+update something                     # 不够具体
+WIP: 正在处理对话功能               # 不符合规范
 ```
 
 ---
 
-## Body（详细说明）
+## 详细说明（Body）
 
-当改动较大时，应该在 body 中详细解释：
+当改动较大时，应该在详细说明中解释：
 
 ```
-feat(chat): add streaming response support
+feat(对话): 添加流式响应支持
 
-Implement server-sent events (SSE) for real-time chat messages.
-This allows clients to receive AI responses character-by-character,
-improving user experience with perceived faster response times.
+实现服务端事件（SSE）用于实时聊天消息。
+这允许客户端逐字符接收 AI 响应，
+改善用户体验并提高感知响应速度。
 
-- Add SSE handler in routes/chat.ts
-- Implement stream buffering in services/chatService.ts
-- Add connection timeout management
-- Update types for streaming payload
+- 在 routes/chat.ts 中添加 SSE 处理程序
+- 在 services/chatService.ts 中实现流缓冲
+- 添加连接超时管理
+- 更新流式负载的类型定义
 ```
 
-### Body 编写规则
+### 详细说明编写规则
 
 1. **每行不超过 72 字符**
-2. **描述 WHY 而不是 WHAT**（WHAT 可以从代码看出）
+2. **描述为什么改，而不是改了什么**（改了什么可以从代码看出）
 3. **用 bullet points 列出具体改动**
-4. **使用中文或英文，保持一致**
+4. **使用中文，保持一致**
 
 ---
 
-## Footer（页脚）
+## 页脚（Footer）
 
 用于：
 1. **关闭相关 issue**
@@ -129,34 +129,34 @@ improving user experience with perceived faster response times.
 ### 关闭 issue
 
 ```
-Closes #123
-Fixes #456
-Resolves #789
+关闭 #123
+修复 #456
+解决 #789
 ```
 
 ### Breaking Changes
 
 ```
-BREAKING CHANGE: JWT token format changed from HS256 to RS256.
-Users need to re-login to get new tokens.
+BREAKING CHANGE: JWT 令牌格式从 HS256 更改为 RS256。
+用户需要重新登录以获取新令牌。
 ```
 
 ### 完整例子
 
 ```
-feat(auth): migrate JWT algorithm to RS256
+feat(认证): 迁移 JWT 算法至 RS256
 
-Update JWT signing and verification to use RS256 algorithm
-for better security. Keys are now read from environment.
+更新 JWT 签名和验证以使用 RS256 算法以提高安全性。
+密钥现在从环境变量读取。
 
-- Replace jsonwebtoken signing with RS256
-- Update middleware to verify with public key
-- Add key generation script
+- 替换 jsonwebtoken 签名为 RS256
+- 更新中间件使用公钥验证
+- 添加密钥生成脚本
 
-Closes #45
+关闭 #45
 
-BREAKING CHANGE: Existing JWT tokens will be invalid.
-All users must re-authenticate.
+BREAKING CHANGE: 现有 JWT 令牌将失效。
+所有用户必须重新进行身份验证。
 ```
 
 ---
@@ -166,44 +166,44 @@ All users must re-authenticate.
 ### 示例 1：简单功能添加
 
 ```
-feat(user): add user profile update endpoint
+feat(用户): 添加用户资料更新接口
 ```
 
 ### 示例 2：bug 修复
 
 ```
-fix(chat): handle null message content gracefully
+fix(对话): 正确处理空消息内容
 
-Add null check before processing message content.
-Prevents crash when client sends empty message.
+在处理消息内容前添加空检查。
+防止客户端发送空消息时的崩溃。
 ```
 
 ### 示例 3：文档更新
 
 ```
-docs: add database setup guide
+docs: 添加数据库设置指南
 ```
 
 ### 示例 4：重构（带详细说明）
 
 ```
-refactor(services): extract database operations to data layer
+refactor(services): 将数据库操作提取到数据层
 
-Move all Prisma calls from services to new db/operations.ts.
-Improves separation of concerns and testability.
+将所有 Prisma 调用从 services 移到新的 db/operations.ts。
+改善关注点分离和可测试性。
 
-- Create db/userOps.ts
-- Create db/messageOps.ts
-- Update all services imports
-- Remove direct Prisma calls from services
+- 创建 db/userOps.ts
+- 创建 db/messageOps.ts
+- 更新所有 services 导入
+- 从 services 中删除直接 Prisma 调用
 ```
 
 ### 示例 5：性能优化
 
 ```
-perf(db): add index on userId in messages table
+perf(数据库): 在 messages 表的 userId 上添加索引
 
-Query performance for message history improved from 500ms to 50ms.
+消息历史查询性能从 500ms 改善到 50ms。
 ```
 
 ---
@@ -213,39 +213,39 @@ Query performance for message history improved from 500ms to 50ms.
 ### 新增 API 端点
 
 ```
-feat(chat): add message history retrieval endpoint
+feat(对话): 添加消息历史检索接口
 
-Implement GET /chat/history to fetch user's past conversations.
-Includes pagination support (limit, offset).
+实现 GET /chat/history 以获取用户的过去对话。
+包含分页支持（limit、offset）。
 
-- Add route handler in routes/chat.ts
-- Implement query logic in services/chatService.ts
-- Add type definitions for paginated response
-- Add unit tests
+- 在 routes/chat.ts 中添加路由处理程序
+- 在 services/chatService.ts 中实现查询逻辑
+- 为分页响应添加类型定义
+- 添加单元测试
 
-Closes #12
+关闭 #12
 ```
 
 ### 修改数据库 Schema
 
 ```
-feat(prisma): add conversation model
+feat(prisma): 添加 Conversation 模型
 
-Add conversations table to group related messages.
-Users can now organize chats by topic.
+添加 conversations 表以分组相关消息。
+用户现在可以按主题组织聊天。
 
-- Add Conversation model to schema.prisma
-- Create migration file
-- Update User relations
-- Add indexes on conversationId and userId
+- 在 schema.prisma 中添加 Conversation 模型
+- 创建迁移文件
+- 更新 User 关系
+- 在 conversationId 和 userId 上添加索引
 
-Closes #34
+关闭 #34
 ```
 
 ### 依赖更新
 
 ```
-chore: upgrade dependencies
+chore: 升级依赖
 
 - typescript: 5.0 → 5.3
 - fastify: 5.0 → 5.1
@@ -255,7 +255,7 @@ chore: upgrade dependencies
 ### 代码风格修复
 
 ```
-style(auth): format code with prettier
+style(认证): 使用 prettier 格式化代码
 ```
 
 ---
@@ -264,11 +264,11 @@ style(auth): format code with prettier
 
 | 错误 | 原因 | 正确做法 |
 |------|------|---------|
-| `fix bug` | 过于简略 | `fix(auth): handle expired JWT tokens` |
-| `Fix(auth): ...` | Type 大写 | `fix(auth): ...` |
-| `fix: update...` | 没有 scope | `fix(auth): update token validation` |
-| `fix(auth): Fixed...` | Subject 大写 | `fix(auth): fix token validation` |
-| `fix(auth): fix...` | 动词重复 | `fix(auth): handle token validation error` |
+| `fix bug` | 过于简略 | `fix(认证): 处理过期的 JWT 令牌` |
+| `Fix(认证): ...` | 类型大写 | `fix(认证): ...` |
+| `fix: 更新...` | 没有范围 | `fix(认证): 更新令牌验证` |
+| `fix(认证): 修复...` | 动词重复 | `fix(认证): 处理令牌验证错误` |
+| `feat: 添加新功能。` | 句号 | `feat(模块): 添加新功能` |
 
 ---
 
@@ -281,7 +281,7 @@ style(auth): format code with prettier
 git checkout -b feat/add-streaming
 
 # 2. 编写代码并提交（遵循规范）
-git commit -m "feat(chat): add streaming support"
+git commit -m "feat(对话): 添加流式支持"
 
 # 3. 推送分支
 git push origin feat/add-streaming
@@ -291,11 +291,11 @@ git push origin feat/add-streaming
 
 ### 合并前检查清单
 
-- [ ] Commit message 遵循规范
+- [ ] 提交信息遵循规范
 - [ ] 类型（type）选择正确
-- [ ] scope 在允许列表中
-- [ ] subject 简明扼要
-- [ ] 必要时包含详细 body
+- [ ] 范围在允许列表中
+- [ ] 简述简明扼要
+- [ ] 必要时包含详细说明
 - [ ] 关闭了相关 issue（如有）
 
 ---
@@ -342,11 +342,11 @@ module.exports = {
 ## 提交历史示例
 
 ```
-* 5ddf0ea (HEAD -> master) docs: add project framework documentation
-* b754ae1 refactor: rename Nexus to link-ai throughout project
-* debd7d2 docs: add comprehensive README
-* 5ddf0ea style: remove emojis from README
-* f536f7d (initial-commit) Initial commit
+* 0d5e4c0 (HEAD -> master) docs: 添加 git 提交规范和 gitignore 文件
+* cd2395a docs: add copilot instructions for AI coding agents
+* b754ae1 refactor: 将 Nexus 重命名为 link-ai
+* 5ddf0ea style: 从 README 中移除 emoji
+* debd7d2 docs: 添加完整的 README
 ```
 
 ---
@@ -365,28 +365,28 @@ module.exports = {
 
 ```bash
 # 新功能
-git commit -m "feat(scope): add new feature"
+git commit -m "feat(范围): 添加新功能"
 
 # 修复
-git commit -m "fix(scope): fix issue description"
+git commit -m "fix(范围): 修复问题描述"
 
 # 文档
-git commit -m "docs: update documentation"
+git commit -m "docs: 更新文档"
 
 # 重构
-git commit -m "refactor(scope): improve code structure"
+git commit -m "refactor(范围): 改进代码结构"
 
 # 性能
-git commit -m "perf(scope): optimize performance"
+git commit -m "perf(范围): 优化性能"
 
 # 详细提交
-git commit -m "feat(auth): add login
+git commit -m "feat(认证): 添加登录功能
 
-- Add login route
-- Add password verification
-- Add JWT generation
+- 添加登录路由
+- 添加密码验证
+- 添加 JWT 生成
 
-Closes #42"
+关闭 #42"
 ```
 
 ---
@@ -394,4 +394,5 @@ Closes #42"
 ## 问题反馈
 
 如果对规范有疑问或建议，请在 issue 中讨论。
+
 
