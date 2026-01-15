@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 用户模型
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系：一个用户可以有多个对话
+  chats Chat[]
+}
+
+// 对话模型
+model Chat {
+  id        String   @id @default(cuid())
+  title     String   @default("新对话")
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系：关联到 User
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 关系：一个对话可以有多条消息
+  messages  Message[]
+
+  @@index([userId])
+}
+
+// 消息模型
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  role      String   @default("user") // "user" 或 "assistant"
+  chatId    String
+  createdAt DateTime @default(now())
+
+  // 关系：关联到 Chat
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
