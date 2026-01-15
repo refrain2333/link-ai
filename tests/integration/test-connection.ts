@@ -20,4 +20,4 @@ async function testConnection() {
   
 }
 
-testConnection()
+await testConnection()
