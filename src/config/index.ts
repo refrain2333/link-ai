@@ -28,10 +28,6 @@ export const config = {
     url: getEnv('DATABASE_URL', true),
   },
   
-  redis: {
-    url: getEnv('REDIS_URL'),
-  },
-  
   jwt: {
     secret: getEnv('JWT_SECRET', true),
     expiresIn: '7d',
