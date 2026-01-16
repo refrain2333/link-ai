@@ -1,11 +1,11 @@
 import pg from 'pg'
-import 'dotenv/config'
+import { config } from '@/config'
 
 const { Client } = pg
 
 async function testConnection() {
   const client = new Client({
-    connectionString: process.env.DATABASE_URL
+    connectionString: config.database.url
   })
 
   try {
@@ -17,7 +17,6 @@ async function testConnection() {
     console.error('连接失败:', error)
     process.exit(1)
   }
-  
 }
 
 await testConnection()

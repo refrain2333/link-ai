@@ -1,12 +1,9 @@
 import Fastify from 'fastify'
-import dotenv from 'dotenv'
+import { config } from '@/config'
 import { registerAuthRoutes } from './routes/auth'
 
-// 加载环境变量
-dotenv.config()
-
-const PORT = parseInt(process.env.PORT || '3000')
-const HOST = '0.0.0.0'
+const PORT = config.port
+const HOST = config.host
 
 // 创建 Fastify 实例
 const fastify = Fastify({

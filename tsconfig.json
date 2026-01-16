@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // ============ 文件路径配置 ============
-    "rootDir": "./src",                    // 源代码目录
+    // "rootDir": "./src",                    // 移除 rootDir 限制，以允许包含 tests 目录
     "outDir": "./dist",                    // 编译输出目录
 
     // ============ 模块和目标配置 ============
@@ -28,6 +28,10 @@
     "verbatimModuleSyntax": true,          // 保留原始模块语法
     "moduleDetection": "auto",             // 自动检测模块类型
     "moduleResolution": "node",            // 使用 Node.js 模块解析
+    "baseUrl": ".",                        // 基础目录
+    "paths": {
+      "@/*": ["src/*"]                     // 配置 @/ 别名指向 src/
+    },
 
     // ============ 其他配置 ============
     "isolatedModules": true,               // 将每个文件视为独立模块
@@ -35,7 +39,7 @@
     "forceConsistentCasingInFileNames": true,  // 强制文件名大小写一致
     "skipLibCheck": true                   // 跳过第三方库的类型检查
   },
-  "include": ["src"],                      // 只编译 src 文件夹
+  "include": ["src", "tests", "prisma"],                      // 包含 src, tests 和 prisma 文件夹
   "exclude": ["node_modules", "dist"]      // 排除这些目录
 }
 
