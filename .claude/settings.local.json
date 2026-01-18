@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma validate:*)",
+      "Bash(node -e:*)",
+      "Bash(npx prisma:*)",
+      "Bash(pnpm prisma db push:*)",
+      "Bash(tee:*)",
+      "Bash(pnpm prisma generate:*)",
+      "Bash(pnpm prisma migrate:*)",
+      "Bash(dir /b:*)",
+      "Bash(findstr:*)",
+      "Bash(pnpm why:*)"
+    ]
+  }
+}

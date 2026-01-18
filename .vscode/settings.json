@@ -6,5 +6,6 @@
   "code-runner.runInTerminal": true,
   "code-runner.saveFileBeforeRun": true,
   "code-runner.clearPreviousOutput": true,
-  "code-runner.showExecutionMessage": false
+  "code-runner.showExecutionMessage": false,
+  "claudeCodeChat.permissions.yoloMode": false
 }

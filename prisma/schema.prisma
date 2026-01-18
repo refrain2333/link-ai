@@ -24,16 +24,18 @@ enum UserRole {
 
 // 用户模型
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique             // 邮箱（登录账号）
-  password  String                       // 哈希后的密码
-  name      String?                      // 昵称
-  avatar    String?                      // 头像地址
-  role      UserRole @default(USER)      // 身份
-  createdAt DateTime @default(now())     // 注册时间
-  updatedAt DateTime @updatedAt           // 更新时间
+  id           String    @id @default(cuid())
+  email        String    @unique             // 邮箱（登录账号）
+  password     String                        // 哈希后的密码
+  name         String?                       // 昵称
+  avatar       String?                       // 头像地址
+  role         UserRole  @default(USER)      // 身份
+  createdAt    DateTime  @default(now())     // 注册时间
+  updatedAt    DateTime  @updatedAt           // 更新时间
+  lastLoginAt  DateTime?                     // 最后登录时间
+  lastLoginIp  String?                       // 最后登录 IP
 
-  chats Chat[]                         // 关联：用户拥有的对话
+  chats        Chat[]                        // 关联：用户拥有的对话
 }
 
 // 对话模型
