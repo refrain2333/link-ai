@@ -43,6 +43,8 @@ model Chat {
   id        String   @id @default(cuid())
   title     String   @default("新对话")    // 对话标题
   userId    String                       // 所属用户 ID
+  modelId   String?                      // 使用的模型 ID
+  modelName String?                      // 使用的模型名称（如：GPT-4o）
   createdAt DateTime @default(now())     // 创建时间
   updatedAt DateTime @updatedAt           // 最后活跃时间
 
@@ -51,6 +53,8 @@ model Chat {
   messages  Message[]                    // 关联：对话下的所有消息
 
   @@index([userId])                    // 用户 ID 索引
+  @@index([modelId])                   // 模型 ID 索引
+  @@index([modelName])                 // 模型名称索引
 }
 
 // AI 模型配置表

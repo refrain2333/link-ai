@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import { config } from '@/config'
 import { bootstrap } from 'fastify-decorators'
 import { AuthController } from './routes/auth'
+import { ChatController } from './routes/chat'
 
 const PORT = config.port
 const HOST = config.host
@@ -18,7 +19,7 @@ fastify.get('/health', async (request, reply) => {
 
 // 注册装饰器控制器
 await fastify.register(bootstrap, {
-  controllers: [AuthController]
+  controllers: [AuthController, ChatController]
 })
 
 // 启动服务
