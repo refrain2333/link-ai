@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import { config } from '@/config'
-import { registerAuthRoutes } from './routes/auth'
+import { bootstrap } from 'fastify-decorators'
+import { AuthController } from './routes/auth'
 
 const PORT = config.port
 const HOST = config.host
@@ -15,8 +16,10 @@ fastify.get('/health', async (request, reply) => {
   return { status: 'ok', message: '服务运行中' }
 })
 
-// 注册认证路由
-await registerAuthRoutes(fastify)
+// 注册装饰器控制器
+await fastify.register(bootstrap, {
+  controllers: [AuthController]
+})
 
 // 启动服务
 async function start() {
@@ -30,4 +33,3 @@ async function start() {
 }
 
 start()
-

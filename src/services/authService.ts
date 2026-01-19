@@ -39,6 +39,7 @@ const registerSchema = z.object({
   password: passwordSchema,
   name: z.string().trim().refine(val => val.length > 0, { message: '昵称不能为空' }).max(255, { message: '昵称长度不能超过255个字符' })
 })
+export { registerSchema }
 export type RegisterParams = z.infer<typeof registerSchema>
 
 export async function register(params: RegisterParams, ip?: string) {
@@ -108,6 +109,7 @@ const loginSchema = z.object({
   email: emailSchema,
   password: passwordSchema
 })
+export { loginSchema }
 export type LoginParams = z.infer<typeof loginSchema>
 
 export async function login(params: LoginParams, ip?: string) {

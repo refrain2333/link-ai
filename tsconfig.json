@@ -33,6 +33,10 @@
       "@/*": ["src/*"]                     // 配置 @/ 别名指向 src/
     },
 
+    // ============ 装饰器支持 ============
+    "experimentalDecorators": true,              // 启用装饰器语法
+    "emitDecoratorMetadata": true,              // 生成装饰器元数据
+
     // ============ 其他配置 ============
     "isolatedModules": true,               // 将每个文件视为独立模块
     "resolveJsonModule": true,             // 允许导入 JSON 文件
