@@ -314,6 +314,68 @@ export async function deleteChat(userId: string, chatId: string) {
 }
 
 /**
+ * 更新对话标题
+ */
+export async function updateChatTitle(userId: string, chatId: string, title: string) {
+  const chat = await prisma.chat.findFirst({
+    where: { id: chatId, userId }
+  })
+
+  if (!chat) {
+    throw new NotFoundError('对话')
+  }
+
+  await prisma.chat.update({
+    where: { id: chatId },
+    data: { title }
+  })
+
+  logger.info({ userId, chatId, title }, '更新对话标题成功')
+
+  return { success: true }
+}
+
+/**
+ * 清空对话消息
+ */
+export async function clearChatMessages(userId: string, chatId: string) {
+  const chat = await prisma.chat.findFirst({
+    where: { id: chatId, userId }
+  })
+
+  if (!chat) {
+    throw new NotFoundError('对话')
+  }
+
+  await prisma.message.deleteMany({
+    where: { chatId }
+  })
+
+  logger.info({ userId, chatId }, '清空对话消息成功')
+
+  return { success: true }
+}
+
+/**
+ * 获取模型列表
+ */
+export async function getModelList() {
+  const models = await prisma.aIModel.findMany({
+    where: { enabled: true },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      name: true,
+      modelId: true,
+      provider: true,
+      enabled: true
+    }
+  })
+
+  return models
+}
+
+/**
  * 获取对话历史消息（用于上下文组装）
  */
 export async function getChatHistory(chatId: string, limit = 10) {

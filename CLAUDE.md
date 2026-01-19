@@ -80,13 +80,14 @@ src/
 必需的环境变量（缺失会导致启动失败）:
 - `DATABASE_URL`: PostgreSQL 连接串
 - `JWT_SECRET`: JWT 签名密钥
-- `OPENAI_API_KEY`: OpenAI API 密钥
 
 可选环境变量:
 - `NODE_ENV`: 运行环境（默认 development）
 - `PORT`: 服务端口（默认 3000）
 - `HOST`: 监听地址（默认 0.0.0.0）
-- `OPENAI_BASE_URL`: OpenAI API 地址（默认官方地址）
+- `CORS_ORIGIN`: CORS 跨域配置（默认允许所有来源）
+
+**注意**: AI 模型配置（API Key、Base URL 等）存储在数据库的 AIModel 表中，不需要配置环境变量。
 
 ### Prisma 数据模型
 

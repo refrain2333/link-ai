@@ -1,8 +1,9 @@
-import { Controller, GET, POST, DELETE } from 'fastify-decorators'
+import { Controller, GET, POST, DELETE, PATCH } from 'fastify-decorators'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { AIResponse, StreamEvent, CreateChatParams, SendMessageParams, GetChatListParams } from '@/services/chatService'
-import { getChatList, getChat, createChat, deleteChat, sendMessage, ChatError, NotFoundError } from '@/services/chatService'
+import { getChatList, getChat, createChat, deleteChat, sendMessage, ChatError, NotFoundError, updateChatTitle, clearChatMessages, getModelList } from '@/services/chatService'
 import { ZodError } from 'zod'
+import { authenticate } from '@/middleware/auth.js'
 
 /**
  * 统一错误响应
@@ -57,13 +58,19 @@ export class ChatController {
   /**
    * 获取对话列表
    */
-  @GET('/')
+  @GET('/', {
+    onRequest: [authenticate]
+  })
   async list(request: FastifyRequest<{ Querystring: GetChatListParams }>, reply: FastifyReply): Promise<void> {
     try {
-      // 从 request.user 获取用户信息（假设 auth 中间件已设置）
-      const userId = (request as any).user?.userId
+      const userId = request.user?.userId
       if (!userId) {
-        throw new ChatError('未登录', 401)
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
       }
 
       const result = await getChatList(userId, request.query)
@@ -80,12 +87,19 @@ export class ChatController {
   /**
    * 获取对话详情
    */
-  @GET('/:chatId')
+  @GET('/:chatId', {
+    onRequest: [authenticate]
+  })
   async detail(request: FastifyRequest<{ Params: { chatId: string } }>, reply: FastifyReply): Promise<void> {
     try {
-      const userId = (request as any).user?.userId
+      const userId = request.user?.userId
       if (!userId) {
-        throw new ChatError('未登录', 401)
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
       }
 
       const chat = await getChat(userId, request.params.chatId)
@@ -102,12 +116,19 @@ export class ChatController {
   /**
    * 创建新对话
    */
-  @POST('/')
+  @POST('/', {
+    onRequest: [authenticate]
+  })
   async create(request: FastifyRequest<{ Body: CreateChatParams }>, reply: FastifyReply): Promise<void> {
     try {
-      const userId = (request as any).user?.userId
+      const userId = request.user?.userId
       if (!userId) {
-        throw new ChatError('未登录', 401)
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
       }
 
       const chat = await createChat(userId, request.body)
@@ -124,12 +145,19 @@ export class ChatController {
   /**
    * 删除对话
    */
-  @DELETE('/:chatId')
+  @DELETE('/:chatId', {
+    onRequest: [authenticate]
+  })
   async delete(request: FastifyRequest<{ Params: { chatId: string } }>, reply: FastifyReply): Promise<void> {
     try {
-      const userId = (request as any).user?.userId
+      const userId = request.user?.userId
       if (!userId) {
-        throw new ChatError('未登录', 401)
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
       }
 
       await deleteChat(userId, request.params.chatId)
@@ -143,8 +171,82 @@ export class ChatController {
   }
 
   /**
+   * 更新对话标题
+   */
+  @PATCH('/:chatId/title', {
+    onRequest: [authenticate]
+  })
+  async updateTitle(request: FastifyRequest<{ Params: { chatId: string }; Body: { title: string } }>, reply: FastifyReply): Promise<void> {
+    try {
+      const userId = request.user?.userId
+      if (!userId) {
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
+      }
+
+      const { title } = request.body
+      await updateChatTitle(userId, request.params.chatId, title)
+      reply.send({
+        code: 0,
+        message: '更新成功'
+      })
+    } catch (err) {
+      handleError(request, reply, err)
+    }
+  }
+
+  /**
+   * 清空对话消息
+   */
+  @DELETE('/:chatId/messages', {
+    onRequest: [authenticate]
+  })
+  async clearMessages(request: FastifyRequest<{ Params: { chatId: string } }>, reply: FastifyReply): Promise<void> {
+    try {
+      const userId = request.user?.userId
+      if (!userId) {
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
+      }
+
+      await clearChatMessages(userId, request.params.chatId)
+      reply.send({
+        code: 0,
+        message: '清空成功'
+      })
+    } catch (err) {
+      handleError(request, reply, err)
+    }
+  }
+
+  /**
+   * 获取模型列表（公开接口）
+   */
+  @GET('/models')
+  async listModels(_request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      const models = await getModelList()
+      reply.send({
+        code: 0,
+        message: 'success',
+        data: models
+      })
+    } catch (err) {
+      handleError(_request, reply, err)
+    }
+  }
+
+  /**
    * 发送消息（流式输出）
-   * 
+   *
    * SSE 响应格式：
    * - Content-Type: text/event-stream
    * - Cache-Control: no-cache
@@ -152,12 +254,19 @@ export class ChatController {
    * - Data: {"type": "content", "content": "xxx"}\n\n
    * - 结束: data: [DONE]\n\n
    */
-  @POST('/message')
+  @POST('/message', {
+    onRequest: [authenticate]
+  })
   async sendMessage(request: FastifyRequest<{ Body: SendMessageParams }>, reply: FastifyReply): Promise<void> {
     try {
-      const userId = (request as any).user?.userId
+      const userId = request.user?.userId
       if (!userId) {
-        throw new ChatError('未登录', 401)
+        reply.status(401).send({
+          code: 401,
+          message: '未登录',
+          data: null
+        })
+        return
       }
 
       // 设置 SSE 响应头
