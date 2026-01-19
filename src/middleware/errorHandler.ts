@@ -173,15 +173,12 @@ export function errorHandler(isDevelopment = process.env.NODE_ENV !== 'productio
  * 为 Fastify 实例注册全局错误处理
  */
 export function registerErrorHandler(fastify: FastifyInstance): void {
-  const isDevelopment = fastify.env.NODE_ENV !== 'production'
+  const isDevelopment = process.env.NODE_ENV !== 'production'
 
   fastify.setErrorHandler(errorHandler(isDevelopment))
 
   // 设置默认 404 处理器
   fastify.setNotFoundHandler(
-    {
-      preHandler: fastify.rateLimit?.() ?? ((_req, _rep, done) => done())
-    },
     (_request, reply) => {
       reply.status(404).send({
         code: 404,

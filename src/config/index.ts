@@ -23,19 +23,18 @@ export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
-  
+
   database: {
     url: getEnv('DATABASE_URL', true),
   },
-  
+
   jwt: {
     secret: getEnv('JWT_SECRET', true),
     expiresIn: '7d',
   },
-  
-  openai: {
-    apiKey: getEnv('OPENAI_API_KEY', true),
-    baseUrl: getEnv('OPENAI_BASE_URL') || 'https://api.openai.com/v1',
+
+  cors: {
+    origin: getEnv('CORS_ORIGIN') || undefined,
   }
 } as const
 
