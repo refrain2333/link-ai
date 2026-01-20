@@ -1,7 +1,8 @@
 import { Controller, POST } from 'fastify-decorators'
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import { register, login, AuthError, type RegisterParams, type LoginParams } from '@/services/authService'
+import { register, login, type RegisterParams, type LoginParams } from '@/services/authService'
 import { ZodError } from 'zod'
+import { BusinessError } from '@/middleware/errorHandler'
 
 /**
  * 获取客户端 IP
@@ -25,10 +26,10 @@ function handleError(request: FastifyRequest, reply: FastifyReply, err: unknown)
   }
 
   // 业务错误（如邮箱已注册、密码错误）
-  if (err instanceof AuthError) {
+  if (err instanceof BusinessError) {
     request.log.warn({ message: err.message }, '业务错误')
-    reply.code(400).send({
-      code: 400,
+    reply.code(err.statusCode).send({
+      code: err.statusCode,
       message: err.message
     })
     return

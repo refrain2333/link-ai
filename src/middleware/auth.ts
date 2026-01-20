@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import jwt from 'jsonwebtoken'
 import { config } from '@/config'
+import { BusinessError } from '@/middleware/errorHandler'
 
 // ============================================
 // 类型定义
@@ -18,20 +19,10 @@ declare module 'fastify' {
 }
 
 // JWT Payload 类型
-interface JWTPayload {
+export interface JWTPayload {
   userId: string
   name: string | null
   email: string
-}
-
-// 辅助函数：获取非空密钥
-function getJwtSecret(): string {
-  const secret = config.jwt.secret
-  if (!secret || secret.length === 0) {
-    throw new Error('JWT_SECRET 环境变量未配置')
-  }
-  // 使用类型断言，jsonwebtoken 需要 string 类型
-  return secret!
 }
 
 // ============================================
@@ -49,69 +40,36 @@ function getJwtSecret(): string {
  *   onRequest: [authenticate]
  * }, async (request, reply) => {
  *   // request.user 已包含解析后的用户信息
- *   const userId = request.user?.userId
+ *   const sub = request.user?.sub
  * })
  * ```
  */
 export async function authenticate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  // 1. 获取 Authorization Header
+  const authHeader = request.headers.authorization
+  if (!authHeader) {
+    throw new BusinessError('未提供认证令牌', 401)
+  }
+
+  // 2. 验证 Header 格式
+  const parts = authHeader.split(' ')
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    throw new BusinessError('认证令牌格式无效，请使用 Bearer 格式', 401)
+  }
+
+  const token = parts[1]
+  if (!token) {
+    throw new BusinessError('认证令牌不能为空', 401)
+  }
+
+  // 3. 验证 JWT Token
   try {
-    // 1. 获取 Authorization Header
-    const authHeader = request.headers.authorization
-
-    if (!authHeader) {
-      reply.status(401).send({
-        code: 401,
-        message: '未提供认证令牌',
-        data: null
-      })
-      return
+    const secret = config.jwt.secret
+    if (!secret) {
+      throw new BusinessError('JWT 配置错误', 500)
     }
 
-    // 2. 验证 Header 格式
-    const parts = authHeader.split(' ')
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      reply.status(401).send({
-        code: 401,
-        message: '认证令牌格式无效，请使用 Bearer 格式',
-        data: null
-      })
-      return
-    }
-
-    const token = parts[1]
-
-    // 3. 验证 JWT Token
-    let payload: JWTPayload
-    try {
-      // @ts-expect-error jsonwebtoken 类型定义过于严格
-      payload = jwt.verify(token, getJwtSecret()) as unknown as JWTPayload
-    } catch (err) {
-      if (err instanceof jwt.TokenExpiredError) {
-        reply.status(401).send({
-          code: 401,
-          message: '认证令牌已过期，请重新登录',
-          data: null
-        })
-        return
-      }
-
-      if (err instanceof jwt.JsonWebTokenError) {
-        reply.status(401).send({
-          code: 401,
-          message: '认证令牌无效',
-          data: null
-        })
-        return
-      }
-
-      // 其他错误
-      reply.status(401).send({
-        code: 401,
-        message: '认证失败',
-        data: null
-      })
-      return
-    }
+    const payload = jwt.verify(token, secret) as unknown as JWTPayload
 
     // 4. 将用户信息挂载到 request
     request.user = {
@@ -119,15 +77,17 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
       name: payload.name,
       email: payload.email
     }
-
   } catch (err) {
-    // 未知错误
-    request.log.error({ err }, '认证中间件发生错误')
-    reply.status(500).send({
-      code: 500,
-      message: '认证服务暂时不可用',
-      data: null
-    })
+    if (err instanceof BusinessError) {
+      throw err
+    }
+    if (err instanceof jwt.TokenExpiredError) {
+      throw new BusinessError('认证令牌已过期，请重新登录', 401)
+    }
+    if (err instanceof jwt.JsonWebTokenError) {
+      throw new BusinessError('认证令牌无效', 401)
+    }
+    throw new BusinessError('认证失败', 401)
   }
 }
 
@@ -138,33 +98,29 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
  * 适用于公开接口但需要记录用户信息的场景
  */
 export async function optionalAuthenticate(request: FastifyRequest, _reply: FastifyReply): Promise<void> {
+  const authHeader = request.headers.authorization
+  if (!authHeader) return
+
+  const parts = authHeader.split(' ')
+  if (parts.length !== 2 || parts[0] !== 'Bearer') return
+
+  const token = parts[1]
+  if (!token) return
+
   try {
-    const authHeader = request.headers.authorization
-
-    if (!authHeader) {
+    const secret = config.jwt.secret
+    if (!secret) {
       return
     }
 
-    const parts = authHeader.split(' ')
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      return
+    const payload = jwt.verify(token, secret) as unknown as JWTPayload
+    request.user = {
+      userId: payload.userId,
+      name: payload.name,
+      email: payload.email
     }
-
-    const token = parts[1]
-
-    try {
-      // @ts-expect-error jsonwebtoken 类型定义过于严格
-      const payload = jwt.verify(token, getJwtSecret()) as unknown as JWTPayload
-      request.user = {
-        userId: payload.userId,
-        name: payload.name,
-        email: payload.email
-      }
-    } catch {
-      // token 无效时不报错，视为未登录
-    }
-  } catch (err) {
-    // 静默忽略错误
+  } catch {
+    // token 无效时不报错，视为未登录
   }
 }
 
@@ -175,7 +131,12 @@ export async function optionalAuthenticate(request: FastifyRequest, _reply: Fast
  * @returns JWT Token 字符串
  */
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, getJwtSecret(), {
+  const secret = config.jwt.secret
+  if (!secret) {
+    throw new Error('JWT_SECRET 未配置')
+  }
+
+  return jwt.sign(payload, secret, {
     expiresIn: config.jwt.expiresIn
   })
 }
@@ -188,7 +149,12 @@ export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string 
  */
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, getJwtSecret()) as unknown as JWTPayload
+    const secret = config.jwt.secret
+    if (!secret) {
+      return null
+    }
+
+    return jwt.verify(token, secret) as unknown as JWTPayload
   } catch {
     return null
   }

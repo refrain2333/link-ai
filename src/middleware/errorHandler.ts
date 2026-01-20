@@ -6,7 +6,7 @@ import { ZodError } from 'zod'
 // ============================================
 
 /**
- * 业务错误
+ * 业务错误（统一的错误类）
  */
 export class BusinessError extends Error {
   statusCode: number
@@ -19,70 +19,15 @@ export class BusinessError extends Error {
   }
 }
 
-/**
- * 认证错误
- */
-export class AuthError extends Error {
-  statusCode = 401
-  code = 401
-  constructor(message: string = '认证失败') {
-    super(message)
-    this.name = 'AuthError'
-  }
-}
-
-/**
- * 权限错误
- */
-export class ForbiddenError extends Error {
-  statusCode = 403
-  code = 403
-  constructor(message: string = '没有权限') {
-    super(message)
-    this.name = 'ForbiddenError'
-  }
-}
-
-/**
- * 资源不存在错误
- */
-export class NotFoundError extends Error {
-  statusCode = 404
-  code = 404
-  constructor(message: string = '资源不存在') {
-    super(message)
-    this.name = 'NotFoundError'
-  }
-}
-
 // ============================================
-// 错误响应格式化
+// 错误响应格式
 // ============================================
 
 interface ErrorResponse {
   code: number
   message: string
   data: null
-  // 开发环境额外信息
-  stack?: string
-}
-
-/**
- * 格式化错误响应
- */
-function formatErrorResponse(err: Error, isDevelopment: boolean): ErrorResponse {
-  const response: ErrorResponse = {
-    code: (err as any).code ?? 500,
-    message: err.message || '服务器错误',
-    data: null
-  }
-
-  // 开发环境显示堆栈信息
-  if (isDevelopment && err.stack) {
-    response.stack = err.stack
-  }
-
-  return response
+  stack?: string  // 开发环境显示堆栈
 }
 
 // ============================================
@@ -112,7 +57,7 @@ export function errorHandler(isDevelopment = process.env.NODE_ENV !== 'productio
       return
     }
 
-    // 2. 自定义业务错误
+    // 2. 业务错误
     if (error instanceof BusinessError) {
       reply.status(error.statusCode).send({
         code: error.code,
@@ -122,46 +67,21 @@ export function errorHandler(isDevelopment = process.env.NODE_ENV !== 'productio
       return
     }
 
-    // 3. 认证错误
-    if (error instanceof AuthError) {
-      reply.status(401).send({
-        code: 401,
-        message: error.message,
-        data: null
-      })
-      return
-    }
-
-    // 4. 权限错误
-    if (error instanceof ForbiddenError) {
-      reply.status(403).send({
-        code: 403,
-        message: error.message,
-        data: null
-      })
-      return
-    }
-
-    // 5. 资源不存在错误
-    if (error instanceof NotFoundError) {
-      reply.status(404).send({
-        code: 404,
-        message: error.message,
-        data: null
-      })
-      return
-    }
-
-    // 6. Fastify 已知错误类型
-    if ('statusCode' in error) {
-      const statusCode = (error as any).statusCode ?? 500
-      reply.status(statusCode).send(formatErrorResponse(error, isDevelopment))
-      return
-    }
-
-    // 7. 未知错误
+    // 3. 未知错误
     request.log.error({ err: error }, '未捕获的错误')
-    reply.status(500).send(formatErrorResponse(error, isDevelopment))
+
+    const response: ErrorResponse = {
+      code: 500,
+      message: isDevelopment ? error.message : '服务器错误',
+      data: null
+    }
+
+    // 开发环境显示堆栈信息
+    if (isDevelopment && error.stack) {
+      response.stack = error.stack
+    }
+
+    reply.status(500).send(response)
   }
 }
 

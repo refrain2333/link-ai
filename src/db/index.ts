@@ -1,9 +1,18 @@
 import { PrismaClient, Prisma } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 import { config } from '@/config'
 import { logger } from '@/utils/logger'
 
+// 创建 PostgreSQL 连接池
+const pool = new pg.Pool({ connectionString: config.database.url })
+
+// 创建 Prisma 适配器
+const adapter = new PrismaPg(pool)
+
 // 创建 Prisma 客户端实例
 const prismaClient = new PrismaClient({
+  adapter,
   // 将日志以事件形式发出，而不是直接打印
   log: [
     { emit: 'event', level: 'query' },

@@ -1,9 +1,10 @@
 import { Controller, GET, POST, DELETE, PATCH } from 'fastify-decorators'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { AIResponse, StreamEvent, CreateChatParams, SendMessageParams, GetChatListParams } from '@/services/chatService'
-import { getChatList, getChat, createChat, deleteChat, sendMessage, ChatError, NotFoundError, updateChatTitle, clearChatMessages, getModelList } from '@/services/chatService'
+import { getChatList, getChat, createChat, deleteChat, sendMessage, updateChatTitle, clearChatMessages, getModelList } from '@/services/chatService'
 import { ZodError } from 'zod'
 import { authenticate } from '@/middleware/auth.js'
+import { BusinessError } from '@/middleware/errorHandler'
 
 /**
  * 统一错误响应
@@ -20,7 +21,7 @@ function handleError(request: FastifyRequest, reply: FastifyReply, err: unknown)
   }
 
   // 业务错误（如对话不存在、AI 服务错误）
-  if (err instanceof ChatError || err instanceof NotFoundError) {
+  if (err instanceof BusinessError) {
     request.log.warn({ message: err.message, name: err.name }, '业务错误')
     reply.code(err.statusCode).send({
       code: err.statusCode,
@@ -292,7 +293,7 @@ export class ChatController {
         handleError(request, reply, err)
       } else {
         // 流已开启，发送错误事件
-        if (err instanceof ChatError) {
+        if (err instanceof BusinessError) {
           reply.raw.write(toSSE({ type: 'error', message: err.message }))
         } else {
           reply.raw.write(toSSE({ type: 'error', message: '服务器错误' }))

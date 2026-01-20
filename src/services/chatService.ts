@@ -4,11 +4,12 @@ import { prisma } from '@/db'
 import { logger } from '@/utils/logger'
 import { countMessageTokens, countTokens } from '@/utils/tiktoken'
 import type { ChatCompletionChunk } from 'openai/resources'
+import { BusinessError } from '@/middleware/errorHandler'
 
 // ==================== 类型定义 ====================
 
 // 流式响应中的事件类型
-export type StreamEvent = 
+export type StreamEvent =
   | { type: 'content'; content: string }
   | { type: 'done' }
   | { type: 'error'; message: string }
@@ -24,26 +25,6 @@ export interface AIResponse {
     promptTokens: number    // 输入 prompt 消耗的 token 数量
     completionTokens: number // 模型回复消耗的 token 数量
     totalTokens: number     // 总消耗 token = prompt + completion
-  }
-}
-
-// ==================== 错误类型 ====================
-
-export class ChatError extends Error {
-  statusCode = 400
-  constructor(message: string, statusCode = 400) {
-    super(message)
-    this.name = 'ChatError'
-    this.statusCode = statusCode
-  }
-}
-
-export class NotFoundError extends Error {
-  statusCode = 404
-  constructor(resource: string) {
-    super(`${resource}不存在`)
-    this.name = 'NotFoundError'
-    this.statusCode = 404
   }
 }
 
@@ -130,7 +111,7 @@ async function getDefaultModel(): Promise<{
   })
 
   if (!model) {
-    throw new ChatError('没有可用的 AI 模型配置，请联系管理员')
+    throw new BusinessError('没有可用的 AI 模型配置，请联系管理员')
   }
 
   return {
@@ -151,7 +132,7 @@ function initOpenAIClient(model: {
   apiKey: string | null
 }): OpenAI {
   if (!model.baseUrl || !model.apiKey) {
-    throw new ChatError('模型配置不完整，缺少 baseUrl 或 apiKey')
+    throw new BusinessError('模型配置不完整，缺少 baseUrl 或 apiKey')
   }
   return new OpenAI({
     baseURL: model.baseUrl,
@@ -227,7 +208,7 @@ export async function getChat(userId: string, chatId: string) {
   })
 
   if (!chat) {
-    throw new NotFoundError('对话')
+    throw new BusinessError('对话不存在', 404)
   }
 
   logger.info({ userId, chatId, messageCount: chat.messages.length }, '获取对话详情成功')
@@ -256,7 +237,7 @@ export async function createChat(userId: string, params: CreateChatParams) {
     })
 
     if (!modelConfig) {
-      throw new ChatError('指定的模型不存在或已禁用')
+      throw new BusinessError('指定的模型不存在或已禁用')
     }
   } else {
     modelConfig = await getDefaultModel()
@@ -301,7 +282,7 @@ export async function deleteChat(userId: string, chatId: string) {
   })
 
   if (!chat) {
-    throw new NotFoundError('对话')
+    throw new BusinessError('对话不存在', 404)
   }
 
   await prisma.chat.delete({
@@ -322,7 +303,7 @@ export async function updateChatTitle(userId: string, chatId: string, title: str
   })
 
   if (!chat) {
-    throw new NotFoundError('对话')
+    throw new BusinessError('对话不存在', 404)
   }
 
   await prisma.chat.update({
@@ -344,7 +325,7 @@ export async function clearChatMessages(userId: string, chatId: string) {
   })
 
   if (!chat) {
-    throw new NotFoundError('对话')
+    throw new BusinessError('对话不存在', 404)
   }
 
   await prisma.message.deleteMany({
@@ -390,7 +371,7 @@ export async function getChatHistory(chatId: string, limit = 10) {
   })
 
   // 反转，按时间正序返回
-  return messages.reverse().map(msg => ({
+  return messages.reverse().map((msg: { role: string; content: string }) => ({
     role: msg.role as 'system' | 'user' | 'assistant',
     content: msg.content
   }))
@@ -430,7 +411,7 @@ export async function sendMessage(
     } as any)
 
     if (!chat) {
-      throw new NotFoundError('对话')
+      throw new BusinessError('对话不存在', 404)
     }
 
     chatId = specifiedChatId
@@ -581,9 +562,9 @@ export async function sendMessage(
     await prisma.message.delete({ where: { id: userMessage.id } }).catch(() => {})
 
     if (error instanceof OpenAI.APIError) {
-      throw new ChatError(`AI 服务错误: ${error.message}`, error.status ?? 500)
+      throw new BusinessError(`AI 服务错误: ${error.message}`, error.status ?? 500)
     }
-    throw new ChatError('AI 服务暂时不可用，请稍后重试', 503)
+    throw new BusinessError('AI 服务暂时不可用，请稍后重试', 503)
   }
 
   const duration = (Date.now() - startTime) / 1000
@@ -621,10 +602,24 @@ export async function sendMessage(
           totalTokens: usage.totalTokens
         }
       }),
-      // 更新对话的 updatedAt
+      // 更新对话的 Token 统计和 updatedAt
       prisma.chat.update({
         where: { id: chatId },
-        data: { updatedAt: new Date() }
+        data: {
+          updatedAt: new Date(),
+          totalPromptTokens: { increment: usage.promptTokens },
+          totalCompletionTokens: { increment: usage.completionTokens },
+          totalTokens: { increment: usage.totalTokens }
+        }
+      }),
+      // 更新用户的 Token 统计
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          totalPromptTokens: { increment: usage.promptTokens },
+          totalCompletionTokens: { increment: usage.completionTokens },
+          totalTokens: { increment: usage.totalTokens }
+        }
       })
     ])
 

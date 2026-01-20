@@ -4,22 +4,8 @@ import { prisma } from '@/db'
 import bcrypt from 'bcrypt'
 import { logger } from '@/utils/logger'
 import { z } from 'zod'
-
-// 定义 JWT Payload 类型
-export interface JWTPayload {
-  userId: string
-  name: string | null
-  email: string
-}
-
-// 定义认证错误类型
-export class AuthError extends Error {
-  statusCode = 401
-  constructor(message: string) {
-    super(message)
-    this.name = 'AuthError'
-  }
-}
+import { BusinessError } from '@/middleware/errorHandler'
+import { generateToken, type JWTPayload } from '@/middleware/auth'
 
 // ==================== 公共 Schema 定义 ====================
 
@@ -56,7 +42,7 @@ export async function register(params: RegisterParams, ip?: string) {
   })
   if (existingUser) {
     logger.warn({ email: normalizedEmail }, '注册失败：邮箱已存在')
-    throw new AuthError('该邮箱已注册')
+    throw new BusinessError('该邮箱已注册', 400)
   }
 
   // 4. 密码哈希
@@ -74,16 +60,11 @@ export async function register(params: RegisterParams, ip?: string) {
   })
 
   // 6. 生成 token
-  const payload: JWTPayload = {
+  const token = generateToken({
     userId: user.id,
     name: user.name,
     email: user.email
-  }
-  const token = jwt.sign(
-    payload,
-    config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
-  )
+  })
 
   // 7. 记录注册成功日志
   logger.info({
@@ -127,28 +108,22 @@ export async function login(params: LoginParams, ip?: string) {
   // 4. 用户不存在？
   if (!user) {
     logger.warn({ email: normalizedEmail }, '登录失败：用户不存在')
-    throw new AuthError('该邮箱未注册')
+    throw new BusinessError('该邮箱未注册', 401)
   }
 
   // 5. 验证密码
   const passwordValid = await bcrypt.compare(password, user.password)
   if (!passwordValid) {
     logger.warn({ email: normalizedEmail, userId: user.id }, '登录失败：密码错误')
-    throw new AuthError('密码错误')
+    throw new BusinessError('密码错误', 401)
   }
 
   // 6. 生成 token
-  const payload: JWTPayload = {
+  const token = generateToken({
     userId: user.id,
     name: user.name,
     email: user.email
-  }
-
-  const token = jwt.sign(
-    payload,
-    config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
-  )
+  })
 
   // 7. 更新最后登录信息（使用事务，防止竞态条件）
   await prisma.$transaction([

@@ -14,7 +14,26 @@
       "Bash(pnpm prisma migrate:*)",
       "Bash(dir /b:*)",
       "Bash(findstr:*)",
-      "Bash(pnpm why:*)"
+      "Bash(pnpm why:*)",
+      "Bash(xargs ls:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 移除 OpenAI 环境变量配置，改用数据库存储\n\n- 从 .env.example 和 CLAUDE.md 中移除 OPENAI_API_KEY 和 OPENAI_BASE_URL\n- AI 模型配置（API Key、Base URL）现统一存储在数据库 AIModel 表中\n- 添加 CORS_ORIGIN 环境变量说明，支持跨域配置\n- 完善 CORS 中间件配置和文档说明\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(pnpm install:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(pnpm add:*)",
+      "Bash(xargs kill:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWttOXAzdjcwMDAwbnpvODU1dmZ0cDlrIiwibmFtZSI6IlRlc3QgVXNlciIsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsImlhdCI6MTc2ODg5MzgxOCwiZXhwIjoxNzY5NDk4NjE4fQ.rlK56EBL2PP2THTf9N1-WHGXEiUxmGr4_0Sznp384U4\":*)"
     ]
   }
 }

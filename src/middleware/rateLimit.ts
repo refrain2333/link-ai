@@ -9,7 +9,7 @@ interface RateLimitItem {
   resetTime: number
 }
 
-// 简单内存存储，使用 Map 存储用户/IP 的请求计数
+// 简单内存存储，使用 Map 存储用户的请求计数
 const rateLimitStore = new Map<string, RateLimitItem>()
 
 /**
@@ -49,7 +49,7 @@ interface RateLimitOptions {
  */
 const defaultOptions: RateLimitOptions = {
   timeWindow: 60 * 1000, // 1 分钟
-  maxRequests: 60, // 每分钟最多 60 次请求
+  maxRequests: 100, // 每分钟最多 100 次请求
   keyPrefix: 'rate_limit',
   message: '请求过于频繁，请稍后再试'
 }
@@ -69,11 +69,14 @@ export function createRateLimit(options: Partial<RateLimitOptions> = {}) {
 
   return async function rateLimit(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      // 生成限制键：支持按用户 ID 或 IP
-      const userId = (request as any).user?.userId
-      const key = userId
-        ? `${config.keyPrefix}:user:${userId}`
-        : `${config.keyPrefix}:ip:${getClientIp(request)}`
+      // 生成限制键：仅按用户 ID
+      const userId = request.user?.userId
+      if (!userId) {
+        // 未登录用户不限流，直接放行
+        return
+      }
+
+      const key = `${config.keyPrefix}:user:${userId}`
 
       const now = Date.now()
       const resetTime = now + config.timeWindow
@@ -110,28 +113,6 @@ export function createRateLimit(options: Partial<RateLimitOptions> = {}) {
       request.log.warn({ err }, '速率限制中间件出错')
     }
   }
-}
-
-/**
- * 获取客户端 IP 地址
- */
-function getClientIp(request: FastifyRequest): string {
-  // 优先使用 X-Forwarded-For（反向代理场景）
-  const forwarded = request.headers['x-forwarded-for']
-  if (forwarded) {
-    const forwardedValue = typeof forwarded === 'string' ? forwarded : forwarded[0]
-    const ips = forwardedValue.split(',')
-    return ips[0].trim()
-  }
-
-  // 其次使用 X-Real-IP
-  const realIp = request.headers['x-real-ip']
-  if (realIp) {
-    return typeof realIp === 'string' ? realIp : realIp[0]
-  }
-
-  // 最后使用 request.ip
-  return request.ip ?? 'unknown'
 }
 
 // ============================================

@@ -35,6 +35,11 @@ model User {
   lastLoginAt  DateTime?                     // 最后登录时间
   lastLoginIp  String?                       // 最后登录 IP
 
+  // Token 消耗统计
+  totalPromptTokens     Int @default(0)      // 用户总输入 Token 消耗
+  totalCompletionTokens Int @default(0)      // 用户总输出 Token 消耗
+  totalTokens           Int @default(0)      // 用户总 Token 消耗
+
   chats        Chat[]                        // 关联：用户拥有的对话
 }
 
@@ -47,6 +52,11 @@ model Chat {
   modelName String?                      // 使用的模型名称（如：GPT-4o）
   createdAt DateTime @default(now())     // 创建时间
   updatedAt DateTime @updatedAt           // 最后活跃时间
+
+  // Token 消耗统计
+  totalPromptTokens     Int @default(0)  // 该会话总输入 Token 消耗
+  totalCompletionTokens Int @default(0)  // 该会话总输出 Token 消耗
+  totalTokens           Int @default(0)  // 该会话总 Token 消耗
 
   // 关系定义：关联用户，支持级联删除
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
